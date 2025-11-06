@@ -4,7 +4,7 @@ We built Cursor for Minecraft. Instead of AI that helps you write code, you get 
 
 ## What It Does
 
-You know how Cursor works? You describe what you want, and it understands the context and executes. Same concept here, except instead of code editing, you get embodied agents that operate in your Minecraft world.
+Steve acts as an Agent, or a series of Agents if you choose to employ all of them. You describe what you want, and he understands the context and executes. Same concept here, except instead of code editing, you get embodied Steves that operate in your Minecraft world.
 
 The interface is simple: press K to open a panel, type what you need. The agents handle the interpretation, planning, and execution. Say "mine some iron" and the agent reasons about where iron spawns, navigates to the appropriate depth, locates ore veins, and extracts the resources. Ask for a house and it considers the available materials, generates an appropriate structure, and builds it block by block.
 
@@ -21,14 +21,10 @@ The agents aren't following predefined scripts. They're operating off natural la
 
 Each Steve is basically running an agent loop. When you give a command:
 
-1. It goes to an LLM (I'm using OpenAI but you can swap to Groq or Gemini)
-2. The LLM breaks down your request into structured tasks
-3. Tasks get executed using Minecraft's actual game mechanics
+1. It goes to an LLM; we're using Groq for fast inference
+2. The LLM breaks down your request into structured code
+3. Code gets executed using Minecraft's actual game mechanics
 4. If something fails, the agent asks the LLM to replan
-
-The key thing is the LLM doesn't directly control anything. It just generates plans in JSON, and those plans map to actual Minecraft actions I coded. So you get the flexibility of natural language with the reliability of deterministic execution.
-
-This is basically the same architecture as AutoGPT or LangChain agents, just applied to Minecraft instead of web browsing or data analysis.
 
 ## Multi-Agent Coordination
 
@@ -72,20 +68,17 @@ Then just spawn a Steve with `/steve spawn Bob` and press K to start using them.
 **Tech Stack:**
 - Minecraft Forge 47.2.0 for the modding framework
 - Java 17
-- OpenAI API for the agent reasoning (pluggable, also supports Groq and Gemini)
+- Groq API for the agent reasoning (pluggable, also supports OpenAI and Gemini)
 - Standard Minecraft pathfinding for movement
+- Langchain
 
 **Architecture:**
 
 The core is in the agent package. Each Steve runs a ReAct-style loop:
 - Reason about what to do
-- Act by executing Minecraft actions
+- Act by executing Java code
 - Observe the results
 - Repeat
-
-We built an action system that gives the LLM a vocabulary of things it can do. Actions like "mine", "place", "navigate", "attack". Each action is a Java class that handles the actual Minecraft mechanics.
-
-The LLM's job is to pick which actions to use and in what order. It's constrained to output JSON that matches our action schema, which makes parsing straightforward and execution deterministic.
 
 For memory, each Steve maintains a conversation history and context about the world. This gets injected into every LLM call so agents can handle follow-up commands without you repeating context.
 
@@ -95,7 +88,7 @@ The collaborative building system was trickier. We had to build a manager that:
 - Prevents conflicts when placing blocks
 - Handles reassignment when Steves finish
 
-It's all deterministic and server-side, so there's no weird race conditions or synchronization issues.
+It's all server-side, so there's no synchronization issues.
 
 **Project Structure:**
 ```
