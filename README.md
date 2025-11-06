@@ -4,18 +4,18 @@ We built Cursor for Minecraft. Instead of AI that helps you write code, you get 
 
 ## What It Does
 
-You know how Cursor works? Press a hotkey, type what you want, and it does it. Same thing here, except the AI is embodied as agents in your world that can actually do stuff.
+You know how Cursor works? You describe what you want, and it understands the context and executes. Same concept here, except instead of code editing, you get embodied agents that operate in your Minecraft world.
 
-Press K, tell a Steve to "mine some iron", and it goes and mines iron. Tell it to "build a house", it builds a house. Tell multiple Steves to work together on a castle, they coordinate and build it faster.
+The interface is simple: press K to open a panel, type what you need. The agents handle the interpretation, planning, and execution. Say "mine some iron" and the agent reasons about where iron spawns, navigates to the appropriate depth, locates ore veins, and extracts the resources. Ask for a house and it considers the available materials, generates an appropriate structure, and builds it block by block.
 
-The agents can:
-- **Mine resources** - any block, any amount, they figure out where to find it
-- **Build structures** - from simple platforms to complex buildings, with multiple agents collaborating
-- **Fight mobs** - defend you, clear areas, hunt specific creatures
-- **Gather and explore** - collect resources, follow you around, scout areas
-- **Work together** - multiple Steves automatically split work and avoid collisions
+What makes this interesting is the multi-agent coordination. When multiple Steves work on the same task, they don't just independently execute, they actively coordinate to avoid conflicts and optimize workload distribution. Tell three agents to build a castle and they'll automatically partition the structure, divide sections among themselves, and parallelize the construction.
 
-It's all natural language. No menus, no scripting, just tell them what you want.
+The agents aren't following predefined scripts. They're operating off natural language instructions, which means:
+- **Resource extraction** where agents determine optimal mining locations and strategies
+- **Autonomous building** with agents planning layouts and material usage
+- **Combat and defense** where agents assess threats and coordinate responses
+- **Exploration and gathering** with pathfinding and resource location
+- **Collaborative execution** with automatic workload balancing and conflict resolution
 
 ## How It Works
 
