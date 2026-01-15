@@ -22,7 +22,6 @@ public class CraftItemAction extends BaseAction {
         // - Check if recipe exists
         // - Check if Steve has ingredients
         // - Navigate to crafting table if needed
-        // - Use Baritone crafting integration
         
         result = ActionResult.failure("Crafting not yet implemented", false);
     }
