@@ -2,6 +2,8 @@
 
 We built Cursor for Minecraft. Instead of AI that helps you write code, you get AI agents that actually play the game with you.
 
+https://github.com/user-attachments/assets/23f0ccdd-7a7a-4d49-9dd9-215ebf67265a
+
 ## What It Does
 
 Steve acts as an Agent, or a series of Agents if you choose to employ all of them. You describe what you want, and he understands the context and executes. Same concept here, except instead of code editing, you get embodied Steves that operate in your Minecraft world.
