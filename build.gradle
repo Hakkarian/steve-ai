@@ -52,12 +52,24 @@ repositories {
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.20.1-47.2.0'
-    
+
     // HTTP client - Using Java 11+ built-in HttpClient (no external dependencies needed!)
     // JSON parsing - Minecraft already includes Gson
-    
+
+    // GraalVM for JavaScript code execution engine
+    implementation 'org.graalvm.polyglot:polyglot:23.1.0'
+    implementation 'org.graalvm.polyglot:js:23.1.0'
+
+    // JUnit 5 for testing
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+
     // Baritone API (will need to be added manually to libs folder)
     // implementation files('libs/baritone-api-1.20.1.jar')
+}
+
+test {
+    useJUnitPlatform()
 }
 
 tasks.named('jar', Jar).configure {

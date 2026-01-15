@@ -164,9 +164,9 @@ public class BuildStructureAction extends BaseAction {
             SteveMod.LOGGER.info("Steve '{}' JOINING existing {} collaborative build at {}", 
                 steve.getSteveName(), structureType, collaborativeBuild.startPos);
         } else {
-            List<CollaborativeBuildManager.BlockPlacement> collaborativeBlocks = new ArrayList<>();
+            List<BlockPlacement> collaborativeBlocks = new ArrayList<>();
             for (BlockPlacement bp : buildPlan) {
-                collaborativeBlocks.add(new CollaborativeBuildManager.BlockPlacement(bp.pos, bp.block));
+                collaborativeBlocks.add(new BlockPlacement(bp.pos, bp.block));
             }
             
             collaborativeBuild = CollaborativeBuildManager.registerBuild(structureType, collaborativeBlocks, clearPos);
@@ -200,7 +200,7 @@ public class BuildStructureAction extends BaseAction {
             }
             
             for (int i = 0; i < BLOCKS_PER_TICK; i++) {
-                CollaborativeBuildManager.BlockPlacement placement = 
+                BlockPlacement placement = 
                     CollaborativeBuildManager.getNextBlock(collaborativeBuild, steve.getSteveName());
                 
                 if (placement == null) {
