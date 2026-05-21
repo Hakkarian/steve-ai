@@ -1,7 +1,6 @@
 package com.steve.ai.event;
 
 import com.steve.ai.SteveMod;
-import com.steve.ai.entity.SteveEntity;
 import com.steve.ai.entity.SteveManager;
 import com.steve.ai.memory.StructureRegistry;
 import net.minecraft.server.level.ServerLevel;
@@ -20,7 +19,8 @@ public class ServerEventHandler {
         if (event.getEntity() instanceof ServerPlayer player) {
             ServerLevel level = (ServerLevel) player.level();
             SteveManager manager = SteveMod.getSteveManager();
-            if (!stevesSpawned) {                manager.clearAllSteves();
+            if (!stevesSpawned) {
+                manager.clearAllSteves();
                 
                 // Clear structure registry for fresh spatial awareness
                 StructureRegistry.clear();
@@ -28,36 +28,43 @@ public class ServerEventHandler {
                 // Then, remove ALL SteveEntity instances from the world (including ones loaded from NBT)
                 int removedCount = 0;
                 for (var entity : level.getAllEntities()) {
-                    if (entity instanceof SteveEntity) {
-                        entity.discard();
+                    if (entity instanceof SteveEntity steve) {
+                        steve.discard();
                         removedCount++;
                     }
-                }                Vec3 playerPos = player.position();
-                Vec3 lookVec = player.getLookAngle();
-                
-                String[] names = {"Steve", "Alex", "Bob", "Charlie"};
-                
-                for (int i = 0; i < 4; i++) {
-                    double offsetX = lookVec.x * 5 + (lookVec.z * (i - 1.5) * 2);
-                    double offsetZ = lookVec.z * 5 + (-lookVec.x * (i - 1.5) * 2);
-                    
-                    Vec3 spawnPos = new Vec3(
-                        playerPos.x + offsetX,
-                        playerPos.y,
-                        playerPos.z + offsetZ
-                    );
-                    
-                    SteveEntity steve = manager.spawnSteve(level, spawnPos, names[i]);
-                    if (steve != null) {                    }
                 }
                 
-                stevesSpawned = true;            }
+                SteveMod.LOGGER.info("Removed {} Steve entities from world on login", removedCount);
+                
+                // Spawn initial Steves
+                int initialSteves = SteveConfig.MAX_ACTIVE_STEVES.get() / 2;
+                for (int i = 0; i < initialSteves; i++) {
+                    // Spawn Steves at random positions
+                    Vec3 spawnPos = player.position().add(
+                        (Math.random() - 0.5) * 20,
+                        0,
+                        (Math.random() - 0.5) * 20
+                    );
+                    
+                    SteveEntity steve = manager.spawnSteve(level, spawnPos, "Steve-" + (i + 1));
+                    if (steve != null) {
+                        steve.setFlying(true);
+                        steve.setInvulnerableBuilding(true);
+                    }
+                }
+                
+                stevesSpawned = true;
+            }
         }
     }
 
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        stevesSpawned = false;
+        if (event.getEntity() instanceof ServerPlayer player) {
+            // Clean up any Steves that might be following this player
+            SteveManager manager = SteveMod.getSteveManager();
+            manager.clearAllSteves();
+            stevesSpawned = false;
+        }
     }
 }
-

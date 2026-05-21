@@ -1,3 +1,7 @@
+[ai]
+    # AI provider to use: 'groq' (FASTEST, FREE), 'openai', 'gemini', or 'openrouter'
+    provider = "groq"
+
 [openai]
     # Your OpenAI API key
     # Get your API key from: https://platform.openai.com/api-keys
@@ -5,12 +9,15 @@
     
     # Using GPT-3.5-turbo (much cheaper than GPT-4 for testing)
     model = "gpt-3.5-turbo"
+
+[openrouter]
+    # Your OpenRouter API key
+    # Get your OpenRouter API key from: https://openrouter.ai/keys
+    # This is the same key Hermes uses
+    apiKey = "sk-or-v1-OPENROUTER_KEY_HERE"
     
-    # Maximum tokens per API request
-    maxTokens = 1000
-    
-    # Temperature (0.0-2.0, lower is more deterministic)
-    temperature = 0.7
+    # OpenRouter model to use - using the free model
+    model = "openrouter/free"
 
 [behavior]
     # Ticks between action checks (20 ticks = 1 second)
@@ -21,4 +28,3 @@
     
     # Maximum number of Steves that can be active simultaneously
     maxActiveSteves = 10
-

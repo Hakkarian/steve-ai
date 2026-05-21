@@ -4,7 +4,6 @@ import com.mojang.logging.LogUtils;
 import com.steve.ai.command.SteveCommands;
 import com.steve.ai.config.SteveConfig;
 import com.steve.ai.entity.SteveEntity;
-import com.steve.ai.entity.SteveManager;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.common.MinecraftForge;
@@ -51,22 +50,26 @@ public class SteveMod {
         MinecraftForge.EVENT_BUS.register(this);
         
         if (net.minecraftforge.fml.loading.FMLEnvironment.dist.isClient()) {
-            MinecraftForge.EVENT_BUS.register(com.steve.ai.client.SteveGUI.class);        }
+            MinecraftForge.EVENT_BUS.register(com.steve.ai.client.SteveGUI.class);
+        }
         
         steveManager = new SteveManager();
     }
 
-    private void commonSetup(final FMLCommonSetupEvent event) {    }
+    private void commonSetup(final FMLCommonSetupEvent event) {
+        // Common setup logic here if needed
+    }
 
     private void entityAttributes(EntityAttributeCreationEvent event) {
         event.put(STEVE_ENTITY.get(), SteveEntity.createAttributes().build());
     }
 
     @SubscribeEvent
-    public void onCommandRegister(RegisterCommandsEvent event) {        SteveCommands.register(event.getDispatcher());    }
+    public void onCommandRegister(RegisterCommandsEvent event) {
+        SteveCommands.register(event.getDispatcher());
+    }
 
     public static SteveManager getSteveManager() {
         return steveManager;
     }
 }
-

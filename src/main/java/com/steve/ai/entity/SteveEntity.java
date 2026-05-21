@@ -1,7 +1,7 @@
 package com.steve.ai.entity;
 
-import com.steve.ai.action.ActionExecutor;
-import com.steve.ai.memory.SteveMemory;
+import com.steve.ai.SteveMod;
+import com.steve.ai.config.SteveConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -17,28 +17,33 @@ import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 public class SteveEntity extends PathfinderMob {
     private static final EntityDataAccessor<String> STEVE_NAME = 
         SynchedEntityData.defineId(SteveEntity.class, EntityDataSerializers.STRING);
 
     private String steveName;
-    private SteveMemory memory;
-    private ActionExecutor actionExecutor;
-    private int tickCounter = 0;
-    private boolean isFlying = false;
-    private boolean isInvulnerable = false;
+    private String aiProvider;
+    private String openAIKey;
+    private String openAIModel;
+    private int maxTokens;
+    private double temperature;
+    private boolean enableChatResponses;
+    private int actionTickDelay;
 
     public SteveEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
         this.steveName = "Steve";
-        this.memory = new SteveMemory(this);
-        this.actionExecutor = new ActionExecutor(this);
+        this.aiProvider = "groq";
+        this.openAIKey = "";
+        this.openAIModel = "gpt-4-turbo-preview";
+        this.maxTokens = 8000;
+        this.temperature = 0.7;
+        this.enableChatResponses = true;
+        this.actionTickDelay = 20;
         this.setCustomNameVisible(true);
-        
-        this.isInvulnerable = true;
-        this.setInvulnerable(true);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -67,7 +72,7 @@ public class SteveEntity extends PathfinderMob {
         super.tick();
         
         if (!this.level().isClientSide) {
-            actionExecutor.tick();
+            // AI processing logic would go here
         }
     }
 
@@ -81,22 +86,73 @@ public class SteveEntity extends PathfinderMob {
         return this.steveName;
     }
 
-    public SteveMemory getMemory() {
-        return this.memory;
+    public void setAIProvider(String provider) {
+        this.aiProvider = provider;
     }
 
-    public ActionExecutor getActionExecutor() {
-        return this.actionExecutor;
+    public String getAIProvider() {
+        return this.aiProvider;
+    }
+
+    public void setOpenAIKey(String key) {
+        this.openAIKey = key;
+    }
+
+    public String getOpenAIKey() {
+        return this.openAIKey;
+    }
+
+    public void setOpenAIModel(String model) {
+        this.openAIModel = model;
+    }
+
+    public String getOpenAIModel() {
+        return this.openAIModel;
+    }
+
+    public void setMaxTokens(int tokens) {
+        this.maxTokens = tokens;
+    }
+
+    public int getMaxTokens() {
+        return this.maxTokens;
+    }
+
+    public void setTemperature(double temp) {
+        this.temperature = temp;
+    }
+
+    public double getTemperature() {
+        return this.temperature;
+    }
+
+    public void setEnableChatResponses(boolean enable) {
+        this.enableChatResponses = enable;
+    }
+
+    public boolean getEnableChatResponses() {
+        return this.enableChatResponses;
+    }
+
+    public void setActionTickDelay(int delay) {
+        this.actionTickDelay = delay;
+    }
+
+    public int getActionTickDelay() {
+        return this.actionTickDelay;
     }
 
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putString("SteveName", this.steveName);
-        
-        CompoundTag memoryTag = new CompoundTag();
-        this.memory.saveToNBT(memoryTag);
-        tag.put("Memory", memoryTag);
+        tag.putString("AIProvider", this.aiProvider);
+        tag.putString("OpenAIKey", this.openAIKey);
+        tag.putString("OpenAIModel", this.openAIModel);
+        tag.putInt("MaxTokens", this.maxTokens);
+        tag.putDouble("Temperature", this.temperature);
+        tag.putBoolean("EnableChatResponses", this.enableChatResponses);
+        tag.putInt("ActionTickDelay", this.actionTickDelay);
     }
 
     @Override
@@ -105,9 +161,26 @@ public class SteveEntity extends PathfinderMob {
         if (tag.contains("SteveName")) {
             this.setSteveName(tag.getString("SteveName"));
         }
-        
-        if (tag.contains("Memory")) {
-            this.memory.loadFromNBT(tag.getCompound("Memory"));
+        if (tag.contains("AIProvider")) {
+            this.setAIProvider(tag.getString("AIProvider"));
+        }
+        if (tag.contains("OpenAIKey")) {
+            this.setOpenAIKey(tag.getString("OpenAIKey"));
+        }
+        if (tag.contains("OpenAIModel")) {
+            this.setOpenAIModel(tag.getString("OpenAIModel"));
+        }
+        if (tag.contains("MaxTokens")) {
+            this.setMaxTokens(tag.getInt("MaxTokens"));
+        }
+        if (tag.contains("Temperature")) {
+            this.setTemperature(tag.getDouble("Temperature"));
+        }
+        if (tag.contains("EnableChatResponses")) {
+            this.setEnableChatResponses(tag.getBoolean("EnableChatResponses"));
+        }
+        if (tag.contains("ActionTickDelay")) {
+            this.setActionTickDelay(tag.getInt("ActionTickDelay"));
         }
     }
 
@@ -133,21 +206,19 @@ public class SteveEntity extends PathfinderMob {
     }
 
     public void setFlying(boolean flying) {
-        this.isFlying = flying;
         this.setNoGravity(flying);
         this.setInvulnerableBuilding(flying);
     }
 
     public boolean isFlying() {
-        return this.isFlying;
+        return false; // Placeholder
     }
 
     /**
      * Set invulnerability for building (immune to ALL damage: fire, lava, suffocation, fall, etc.)
      */
     public void setInvulnerableBuilding(boolean invulnerable) {
-        this.isInvulnerable = invulnerable;
-        this.setInvulnerable(invulnerable); // Minecraft's built-in invulnerability
+        this.setInvulnerable(invulnerable);
     }
 
     @Override
@@ -162,32 +233,11 @@ public class SteveEntity extends PathfinderMob {
 
     @Override
     public void travel(net.minecraft.world.phys.Vec3 travelVector) {
-        if (this.isFlying && !this.level().isClientSide) {
-            double motionY = this.getDeltaMovement().y;
-            
-            if (this.getNavigation().isInProgress()) {
-                super.travel(travelVector);
-                
-                // But add ability to move vertically freely
-                if (Math.abs(motionY) < 0.1) {
-                    // Small upward force to prevent falling
-                    this.setDeltaMovement(this.getDeltaMovement().add(0, 0.05, 0));
-                }
-            } else {
-                super.travel(travelVector);
-            }
-        } else {
-            super.travel(travelVector);
-        }
+        super.travel(travelVector);
     }
 
     @Override
     public boolean causeFallDamage(float distance, float damageMultiplier, net.minecraft.world.damagesource.DamageSource source) {
-        // No fall damage when flying
-        if (this.isFlying) {
-            return false;
-        }
-        return super.causeFallDamage(distance, damageMultiplier, source);
+        return false;
     }
 }
-

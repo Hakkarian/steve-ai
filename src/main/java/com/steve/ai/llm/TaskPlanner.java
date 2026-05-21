@@ -18,11 +18,13 @@ public class TaskPlanner {
     private final OpenAIClient openAIClient;
     private final GeminiClient geminiClient;
     private final GroqClient groqClient;
+    private final OpenRouterClient openRouterClient;
 
     // NEW: Async resilient clients
     private final AsyncLLMClient asyncOpenAIClient;
     private final AsyncLLMClient asyncGroqClient;
     private final AsyncLLMClient asyncGeminiClient;
+    private final AsyncLLMClient asyncOpenRouterClient;
     private final LLMCache llmCache;
     private final LLMFallbackHandler fallbackHandler;
 
@@ -31,6 +33,7 @@ public class TaskPlanner {
         this.openAIClient = new OpenAIClient();
         this.geminiClient = new GeminiClient();
         this.groqClient = new GroqClient();
+        this.openRouterClient = new OpenRouterClient();
 
         // Initialize async infrastructure
         this.llmCache = new LLMCache();
@@ -46,11 +49,13 @@ public class TaskPlanner {
         AsyncLLMClient baseOpenAI = new AsyncOpenAIClient(apiKey, model, maxTokens, temperature);
         AsyncLLMClient baseGroq = new AsyncGroqClient(apiKey, "llama-3.1-8b-instant", 500, temperature);
         AsyncLLMClient baseGemini = new AsyncGeminiClient(apiKey, "gemini-1.5-flash", maxTokens, temperature);
+        AsyncLLMClient baseOpenRouter = new AsyncOpenRouterClient(SteveConfig.OPENROUTER_API_KEY.get(), SteveConfig.OPENROUTER_MODEL.get(), maxTokens, temperature);
 
         // Wrap with resilience patterns
         this.asyncOpenAIClient = new ResilientLLMClient(baseOpenAI, llmCache, fallbackHandler);
         this.asyncGroqClient = new ResilientLLMClient(baseGroq, llmCache, fallbackHandler);
         this.asyncGeminiClient = new ResilientLLMClient(baseGemini, llmCache, fallbackHandler);
+        this.asyncOpenRouterClient = new ResilientLLMClient(baseOpenRouter, llmCache, fallbackHandler);
 
         SteveMod.LOGGER.info("TaskPlanner initialized with async resilient clients");
     }
@@ -91,6 +96,7 @@ public class TaskPlanner {
             case "groq" -> groqClient.sendRequest(systemPrompt, userPrompt);
             case "gemini" -> geminiClient.sendRequest(systemPrompt, userPrompt);
             case "openai" -> openAIClient.sendRequest(systemPrompt, userPrompt);
+            case "openrouter" -> openRouterClient.sendRequest(systemPrompt, userPrompt);
             default -> {
                 SteveMod.LOGGER.warn("Unknown AI provider '{}', using Groq", provider);
                 yield groqClient.sendRequest(systemPrompt, userPrompt);
@@ -133,7 +139,7 @@ public class TaskPlanner {
             // Build params map
             Map<String, Object> params = Map.of(
                 "systemPrompt", systemPrompt,
-                "model", SteveConfig.OPENAI_MODEL.get(),
+                "model", SteveConfig.OPENROUTER_MODEL.get(),
                 "maxTokens", SteveConfig.MAX_TOKENS.get(),
                 "temperature", SteveConfig.TEMPERATURE.get()
             );
@@ -187,6 +193,7 @@ public class TaskPlanner {
             case "openai" -> asyncOpenAIClient;
             case "gemini" -> asyncGeminiClient;
             case "groq" -> asyncGroqClient;
+            case "openrouter" -> asyncOpenRouterClient;
             default -> {
                 SteveMod.LOGGER.warn("[Async] Unknown provider '{}', using Groq", provider);
                 yield asyncGroqClient;
