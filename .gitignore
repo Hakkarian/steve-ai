@@ -15,9 +15,10 @@ out/
 # Minecraft
 run/
 
-# Config with API keys
-config/steve-common.toml
-run/config/steve-common.toml
+|    # Config with API keys
+    config/steve-common.toml
+    run/config/steve-common.toml
+    .env
 
 # Media files (large binaries)
 *.mp4
